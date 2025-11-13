@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -108,7 +108,7 @@
         #blocklyArea {
             flex: 1;
             position: relative;
-            background: #fff;
+            background: #373737;
         }
         /* white workspace like Scratch */
         #blocklyDiv {
@@ -603,12 +603,16 @@
             return `<xml xmlns="https://developers.google.com/blockly/xml">
                         <category name="Motion" colour="${COLORS.motion}">
                             <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+                            <block type="motion_bounce"></block>
+                            <block type="motion_turn_left"><value name="DEGREES"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
+                            <block type="motion_turn_right"><value name="DEGREES"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
                         </category>
                         <category name="Looks" colour="${COLORS.looks}">
                             <block type="looks_sayforsecs">
                                 <value name="TEXT"><shadow type="text"><field name="TEXT">Hello!</field></shadow></value>
                                 <value name="SECS"><shadow type="math_number"><field name="NUM">2</field></shadow></value>
                             </block>
+                           <block type="looks_next_custom"></block>
                         </category>
                         <category name="Sound" colour="${COLORS.sound}"><block type="sound_play"><value name="SOUND"><shadow type="text"><field name="TEXT">meow</field></shadow></value></block></category>
                         <category name="Events" colour="${COLORS.events}"><block type="event_whenflagclicked"></block><block type="control_event_clone"></block></category>
@@ -617,13 +621,17 @@
                             <block type="control_repeat"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value><statement name="DO"></statement></block>
                             <block type="control_forever"><statement name="DO"></statement></block>
                             <block type="control_if"></block>
+                            <block type="control_if_else"></block>
                             <block type="control_break"></block>
                             <block type="control_create_clone"></block>
                             <block type="control_delete_clone"></block>
+                            <block type="control_for_var_repeat"><value name="LOOPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+                            <block type="control_stop_scripts"></block>
                         </category>
                         <category name="Logic" colour="${COLORS.logic}">
                             <block type="logic_compare"></block>
                             <block type="control_if"></block>
+                            <block type="control_if_else"></block>
                         </category>
                         <category name="Operators" colour="${COLORS.operators}">${REPORTER_BLOCKS_XML}</category>
                         <category name="Variables" colour="${COLORS.variables}"><block type="variables_get"></block><block type="variables_set"></block></category>
@@ -657,26 +665,132 @@
                 // CORRECTED: Event blocks start the stack. They should have NO previousStatement, but DO have nextStatement.
                 { type: "event_whenflagclicked", message0: "when flag clicked", nextStatement: true, colour: COLORS.events, hat: "cap" },
                 // CORRECTED: Hat blocks, like the flag clicked event
-                { type: "control_event_clone", message0: "when is get I clone", nextStatement: true, colour: "#2c9a31", hat: "cap" },
+                { type: "control_event_clone", message0: "when is get I clone", nextStatement: true, colour: "#1af", hat: "cap" },
 
                 // CORRECTED: Standard statement blocks must have both previousStatement and nextStatement.
                 { type: "control_wait", message0: "wait %1 seconds", args0: [{ type: "input_value", name: "DURATION", check: "Number" }], previousStatement: true, nextStatement: true, colour: COLORS.control },
                 { type: "control_repeat", message0: "repeat %1 times %2", args0: [{ type: "input_value", name: "TIMES", check: "Number" }, { type: "input_statement", name: "DO" }], previousStatement: true, nextStatement: true, colour: COLORS.control },
                 { type: "control_forever", message0: "forever %1", args0: [{ type: "input_statement", name: "DO" }], previousStatement: true, nextStatement: true, colour: COLORS.control },
                 { type: "control_if", message0: "if %1 then %2", args0: [{ type: "input_value", name: "CONDITION", check: "Boolean" }, { type: "input_statement", name: "DO" }], previousStatement: true, nextStatement: true, colour: COLORS.logic },
+                { type: "control_if_else", message0: "if %1 then %2 else %3", args0: [{ type: "input_value", name: "CONDITION", check: "Boolean" }, { type: "input_statement", name: "DO" }, { type: "input_statement", name: "ELSE" }], previousStatement: true, nextStatement: true, colour: COLORS.logic },
 
                 // CORRECTED: break is terminal (no next block allowed), but must connect to a previous block.
-                { type: "control_break", message0: "break", previousStatement: true, nextStatement: null, colour: COLORS.control },
+                { type: "control_break", message0: "break", previousStatement: true, colour: COLORS.control },
 
-                { type: "control_create_clone", message0: "create clone", args0: [{ type: "field_dropdown", name: "SPRITE", options: [["myself", "self"], ["N/A", "null"]] }], previousStatement: true, nextStatement: true, colour: "#2c9a31" },
+                {
+                    "type": "control_stop_scripts",
+                    "tooltip": "",
+                    "helpUrl": "",
+                    "message0": "stop %1 %2",
+                    "args0": [
+                        {
+                            "type": "field_dropdown",
+                            "name": "OPTION_STOPS",
+                            "options": [
+                                [
+                                    "all",
+                                    "ALLSTOP"
+                                ],
+                                [
+                                    "this script",
+                                    "THISSCRIPT"
+                                ],
+                                [
+                                    "other stop scripts in sprite",
+                                    "OTHERSTOPSCRIPT"
+                                ]
+                            ]
+                        },
+                        {
+                            "type": "input_dummy",
+                            "name": "DUMMY1"
+                        }
+                    ],
+                    "previousStatement": null,
+                    "nextStatement": null,
+                    "colour": COLORS.control
+                },
+
+
+                { type: "control_create_clone", message0: "create clone", /*args0: [{ type: "field_dropdown", name: "SPRITE", options: [["myself", "self"], ["N/A", "null"]] }],*/ previousStatement: true, nextStatement: true, colour: "#1af" },
                 // CORRECTED: delete clone is terminal, but must connect to a previous block.
-                { type: "control_delete_clone", message0: "delete clone", previousStatement: true, nextStatement: null, colour: "#2c9a31" },
+                { type: "control_delete_clone", message0: "delete clone", previousStatement: true, colour: "#1af" },
 
                 // CORRECTED: Standard statement blocks
                 { type: "motion_movesteps", message0: "move %1 steps", args0: [{ type: "input_value", name: "STEPS", check: "Number" }], previousStatement: true, nextStatement: true, colour: COLORS.motion },
-                { type: "looks_sayforsecs", message0: "say %1 for %2 secs", args0: [{ type: "input_value", name: "TEXT", check: "String" }, { type: "input_value", name: "SECS", check: "Number" }], previousStatement: true, nextStatement: true, colour: COLORS.looks },
-                { type: "sound_play", message0: "play sound %1", args0: [{ type: "input_value", name: "SOUND", check: "String" }], previousStatement: true, nextStatement: true, colour: COLORS.sound },
+                {
+                    "type": "motion_turn_left",
+                    "tooltip": "",
+                    "helpUrl": "",
+                    "message0": "turn left %1 %2 degrees %3",
+                    "args0": [
+                        {
+                            "type": "field_image",
+                            "src": "https://cdn-icons-png.flaticon.com/512/73/73450.png",
+                            "width": 15,
+                            "height": 15,
+                            "alt": "",
+                            "flipRtl": "FALSE"
+                        },
+                        {
+                            "type": "input_value",
+                            "name": "DEGREES",
+                            "check": "Number",
+                            "value": 15
+                        },
+                        {
+                            "type": "input_dummy",
+                            "name": "DUMMY1"
+                        }
+                    ],
+                    "previousStatement": null,
+                    "nextStatement": null,
+                    "colour": COLORS.motion
+                },
 
+                {
+                    "type": "motion_turn_right",
+                    "tooltip": "",
+                    "helpUrl": "",
+                    "message0": "turn right %1 %2 degrees %3",
+                    "args0": [
+                        {
+                            "type": "field_image",
+                            "src": "https://cdn-icons-png.flaticon.com/512/73/73450.png",
+                            "width": 15,
+                            "height": 15,
+                            "alt": "",
+                            "flipRtl": "FALSE"
+                        },
+                        {
+                            "type": "input_value",
+                            "name": "DEGREES",
+                            "check": "Number",
+                            "value": 15
+                        },
+                        {
+                            "type": "input_dummy",
+                            "name": "DUMMY1"
+                        }
+                    ],
+                    "previousStatement": null,
+                    "nextStatement": null,
+                    "colour": COLORS.motion
+                },
+
+                { type: "looks_sayforsecs", message0: "say %1 for %2 secs", args0: [{ type: "input_value", name: "TEXT", check: "String" }, { type: "input_value", name: "SECS", check: "Number" }], previousStatement: true, nextStatement: true, colour: COLORS.looks },
+                {
+                    "type": "looks_next_custom",
+                    "tooltip": "",
+                    "helpUrl": "",
+                    "message0": "next custom",
+                    "previousStatement": null,
+                    "nextStatement": null,
+                    "colour": COLORS.looks
+                },
+
+                { type: "sound_play", message0: "play sound %1", args0: [{ type: "input_value", name: "SOUND", check: "String" }], previousStatement: true, nextStatement: true, colour: COLORS.sound },
+                
                 /* reporter helpers */
                 { type: "math_number", message0: "%1", args0: [{ type: "field_number", name: "NUM", value: 0 }], output: "Number", colour: COLORS.operators },
                 { type: "text", message0: "\"%1\"", args0: [{ type: "field_input", name: "TEXT", text: "Hello!" }], output: "String", colour: COLORS.operators },
@@ -685,6 +799,47 @@
                 /* simple utilities */
                 { type: "none_value", message0: "none value", output: null, colour: COLORS.comment },
                 { type: "comment_block", message0: "comment: %1", args0: [{ type: "field_input", name: "TEXT", text: "Note here" }], previousStatement: true, nextStatement: true, colour: COLORS.comment },
+                {
+                    "type": "control_for_var_repeat",
+                    "message0": "for %1 to %2 repeat %3",
+                    "args0": [
+                        {
+                            "type": "field_variable",
+                            "name": "VALUE_VAR",
+                            "variable": "i"
+                        },
+                        {
+                            "type": "input_value",
+                            "name": "LOOPS",
+                            "check": "Number",
+                            "value": 10
+                        },
+                        {
+                            "type": "input_statement",
+                            "name": "DO_VAR"
+                        }
+                    ],
+                    "previousStatement": null,
+                    "nextStatement": null,
+                    "colour": COLORS.control
+                },
+
+                {
+                    "type": "motion_bounce",
+                    "tooltip": "",
+                    "helpUrl": "",
+                    "message0": "if on edge, bounce %1",
+                    "args0": [
+                        {
+                            "type": "input_dummy",
+                            "name": "DUMMY1"
+                        }
+                    ],
+                    "previousStatement": null,
+                    "nextStatement": null,
+                    "colour": COLORS.motion
+                },
+
                 {
                     type: "defined_block_output",
                     message0: "get defind value %1",
@@ -701,8 +856,8 @@
                             name: "BeachList",
                         }
                     ],
-                    previousStatement: true,
-                    nextStatement: true,
+                    "previousStatement": null,
+                    "nextStatement": null,
                     colour: COLORS.defined
                 },
                 /* Undefined/Broken Block Definition (Grey) */
@@ -830,9 +985,8 @@
                     message0: message0,
                     args0: args,
                     // Definition blocks are HAT blocks, they should only have a next connection.
-                    previousStatement: null,
-                    nextStatement: true,
                     colour: COLORS.custom,
+                    hat: true,
                     deletable: true,
                     movable: true
                 };
@@ -1252,5 +1406,4 @@
     </script>
 
 </body>
-<!--This script are only html lol-->
 </html>
